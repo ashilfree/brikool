@@ -22,7 +22,7 @@ Route::prefix('v1')->name('api.v1.')->namespace('Api\V1')->group(function (){
     Route::get('/status', function () {
         return response()->json(['status' => 'OK']);
     })->name('status');
-    Route::apiResource('members.profiles', 'MemberController');
+    Route::apiResource('members', 'MemberController');
 });
 
 Route::prefix('v2')->name('api.v2.')->group(function (){
@@ -30,6 +30,9 @@ Route::prefix('v2')->name('api.v2.')->group(function (){
         return response()->json(['status' => true]);
     })->name('status');
 });
+
+Route::post('/members/login', 'Api\\AuthController@login');
+Route::post('/members/register', 'Api\\AuthController@register');
 
 Route::fallback(function (){
     return response()->json([

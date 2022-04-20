@@ -16,7 +16,7 @@ class ProfileMemberResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'address' => $this->when(false, $this->address),
+            'address' => $this->when(true, $this->address),
         ];
     }
 }

@@ -27,7 +27,7 @@ class MemberController extends Controller
      */
     public function index(Request $request)
     {
-        $per_page = $request->get('per_page') ?? 20;
+        $per_page = $request->get('per_page') ?? 2;
         return MemberResource::collection(
             Member::with('profile')->paginate($per_page)->appends([
                 'per_page' => $per_page

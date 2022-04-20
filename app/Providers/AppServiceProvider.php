@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Resources\ProfileMemberResource;
 use Illuminate\Http\Resources\Json\ResourceResponse;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
 //        MemberResource::withoutWrapping();
+//        ProfileMemberResource::withoutWrapping();
         ResourceCollection::withoutWrapping();
     }
 }
