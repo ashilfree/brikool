@@ -14,7 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'web',
+        'guard' => 'api',
         'passwords' => 'users',
     ],
 
@@ -41,8 +41,8 @@ return [
             'provider' => 'users',
         ],
         'api' => [
-            'driver' => 'token',
-            'provider' => 'users',
+            'driver' => 'jwt',
+            'provider' => 'members',
 //            'input_key' => 'token',
 //            'storage_key' => 'token'
         ]
@@ -71,10 +71,10 @@ return [
             'model' => App\Models\User::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+         'members' => [
+             'driver' => 'eloquent',
+             'model' => App\Models\Member::class,
+         ],
     ],
 
     /*

@@ -33,6 +33,11 @@ Route::prefix('v2')->name('api.v2.')->group(function (){
 
 Route::post('/members/login', 'Api\\AuthController@login');
 Route::post('/members/register', 'Api\\AuthController@register');
+Route::group(['middleware' => ['cors_me']], function (){
+    Route::group(['middleware' => 'jwtCheck'], function ($router){
+        Route::post('/members/logout', 'AuthController@logout');
+    });
+});
 
 Route::fallback(function (){
     return response()->json([

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddApiTokenToUsersTable extends Migration
+class AddForeignKeyToMembersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,11 +13,8 @@ class AddApiTokenToUsersTable extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('api_token', 80)->after('password')
-                    ->unique()
-                ->nullable()
-                ->default(null);
+        Schema::table('members', function (Blueprint $table) {
+            $table->foreignId('account_id')->constrained();
         });
     }
 
@@ -28,8 +25,8 @@ class AddApiTokenToUsersTable extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('api_token');
+        Schema::table('members', function (Blueprint $table) {
+            $table->dropConstrainedForeignId();
         });
     }
 }
