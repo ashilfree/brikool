@@ -15,7 +15,7 @@ class AuthController extends Controller
     {
         $validated = $request->validated();
 
-        if (!Auth::attempt($validated)){
+        if (!Auth::attempt($validated, false)){
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
