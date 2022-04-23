@@ -14,33 +14,47 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+//Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//    return $request->user();
+//});
+//
+//Route::prefix('v1')->name('api.v1.')->namespace('Api\V1')->group(function (){
+//    Route::get('/status', function () {
+//        return response()->json(['status' => 'OK']);
+//    })->name('status');
+//    Route::apiResource('members', 'MemberController');
+//});
+//
+//Route::prefix('v2')->name('api.v2.')->group(function (){
+//    Route::get('/status', function () {
+//        return response()->json(['status' => true]);
+//    })->name('status');
+//});
+//
+//Route::post('/members/login', 'Api\\AuthController@login');
+//Route::post('/members/register', 'Api\\AuthController@register');
+//Route::group(['middleware' => ['cors_me']], function (){
+//    Route::group(['middleware' => 'jwtCheck'], function ($router){
+//        Route::post('/members/logout', 'Api\\AuthController@logout');
+//    });
+//});
+//
+//Route::fallback(function (){
+//    return response()->json([
+//        'message' => 'Not found'
+//    ], 404);
+//})->name('api.fallback');
 
-Route::prefix('v1')->name('api.v1.')->namespace('Api\V1')->group(function (){
-    Route::get('/status', function () {
-        return response()->json(['status' => 'OK']);
-    })->name('status');
-    Route::apiResource('members', 'MemberController');
-});
+Route::group([
 
-Route::prefix('v2')->name('api.v2.')->group(function (){
-    Route::get('/status', function () {
-        return response()->json(['status' => true]);
-    })->name('status');
-});
+    'middleware' => 'api',
+    'prefix' => 'auth'
 
-Route::post('/members/login', 'Api\\AuthController@login');
-Route::post('/members/register', 'Api\\AuthController@register');
-Route::group(['middleware' => ['cors_me']], function (){
-    Route::group(['middleware' => 'jwtCheck'], function ($router){
-        Route::post('/members/logout', 'AuthController@logout');
-    });
-});
+], function ($router) {
 
-Route::fallback(function (){
-    return response()->json([
-        'message' => 'Not found'
-    ], 404);
-})->name('api.fallback');
+    Route::post('login', 'Api\\AuthController@login');
+    Route::post('logout', 'Api\\AuthController@logout');
+    Route::post('refresh', 'Api\\AuthController@refresh');
+    Route::post('me', 'Api\\AuthController@me');
+
+});
