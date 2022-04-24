@@ -7,6 +7,7 @@ use Illuminate\Http\Resources\Json\ResourceResponse;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use App\Http\Resources\MemberResource;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+//        Schema::defaultStringLength(191);
 //        MemberResource::withoutWrapping();
 //        ProfileMemberResource::withoutWrapping();
         ResourceCollection::withoutWrapping();

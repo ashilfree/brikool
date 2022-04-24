@@ -3,7 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Tymon\JWTAuth\JWTAuth;
+use JWTAuth;
 use Exception;
 use Tymon\JWTAuth\Http\Middleware\BaseMiddleware;
 
@@ -20,7 +20,6 @@ class JwtCheck extends BaseMiddleware
     public function handle($request, Closure $next)
     {
 
-        dd(JWTAuth::authenticate());
         try
         {
 

@@ -5,65 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MemberLoginStore;
 use App\Http\Requests\MemberRegisterStore;
+use App\Mail\MemberVerification;
+use App\Models\LoginLog;
 use App\Models\Member;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use JWTAuth;
 
 class AuthController extends Controller
 {
-//    public function login(MemberLoginStore $request)
-//    {
-//        $validated = $request->validated();
-//
-//        if (!Auth::attempt($validated, false)){
-//            return response()->json(['message' => 'Unauthorized'], 401);
-//        }
-//
-//        $user = Member::where('email', $request['email'])->firstOrFail();
-//        $token = auth('api')->attempt($validated, false);
-////        $token = $user->createToken('auth_token')->plainTextToken;
-//        return $this->respondWithToken($token);
-//        return response()
-//            ->json(['message' => 'Hi '.$user->name.', welcome to home','access_token' => $token, 'token_type' => 'Bearer', ]);
-//    }
-//
-//    public function register(MemberRegisterStore $request)
-//    {
-//        $validated = $request->validated();
-//        $validated['password'] = Hash::make($validated['password']);
-//        $member = Member::create($validated);
-//
-//        $token = $member->createToken('auth_token')->plainTextToken;
-//
-//        return response()
-//            ->json(['data' => $member,'access_token' => $token, 'token_type' => 'Bearer', ]);
-//    }
-//
-//    public function logout()
-//    {
-//        auth()->user()->tokens()->delete();
-//
-//        return [
-//            'message' => 'You have successfully logged out and the token was successfully deleted'
-//        ];
-//    }
-//
-//    /**
-//     * Get the token array structure.
-//     *
-//     * @param  string $token
-//     *
-//     * @return \Illuminate\Http\JsonResponse
-//     */
-//    protected function respondWithToken($token)
-//    {
-//        return response()->json([
-//            'access_token' => $token,
-//            'token_type' => 'bearer',
-//            'expires_in' => auth('api')->factory()->getTTL() * 60
-//        ]);
-//    }
-
 
     /**
      * Create a new AuthController instance.
@@ -72,21 +22,48 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register']]);
     }
 
     /**
      * Get a JWT via given credentials.
      *
+     * @param MemberLoginStore $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function login()
+    public function login(MemberLoginStore $request)
     {
         $credentials = request(['email', 'password']);
 
         if (! $token = auth('api')->attempt($credentials,true)) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+        $member = auth('api')->user();
+        $login_log = new LoginLog();
+        $login_log->type = "login";
+        $login_log->member_id = $member->id;
+        $login_log->save();
+        return $this->respondWithToken($token);
+    }
+
+    /**
+     * Register and Get a JWT via given credentials.
+     *
+     * @param MemberRegisterStore $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+        public function register(MemberRegisterStore $request)
+    {
+        $validated = $request->validated();
+        $validated['password'] = Hash::make($validated['password']);
+        $member = Member::create($validated);
+//        dd($member->email);
+        Mail::to($member)->send(
+            new MemberVerification($member)
+        );
+
+        $token = JWTAuth::fromUser($member);
+
         return $this->respondWithToken($token);
     }
 
@@ -107,6 +84,12 @@ class AuthController extends Controller
      */
     public function logout()
     {
+        $member = auth('api')->user();
+
+        $logout_log = new LoginLog();
+        $logout_log->type = "logout";
+        $logout_log->member_id = $member->id;
+        $logout_log->save();
         auth()->logout();
 
         return response()->json(['message' => 'Successfully logged out']);
