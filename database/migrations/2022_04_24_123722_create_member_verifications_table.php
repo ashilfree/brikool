@@ -17,7 +17,6 @@ class CreateMemberVerificationsTable extends Migration
             $table->id();
             $table->foreignId('member_id')->constrained();
             $table->string('token');
-            $table->timestamps();
         });
 
         Schema::table('members', function (Blueprint $table) {

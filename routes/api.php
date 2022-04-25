@@ -33,6 +33,7 @@ Route::prefix('v2')->name('api.v2.')->group(function (){
 
 Route::post('/members/login', 'Api\\AuthController@login');
 Route::post('/members/register', 'Api\\AuthController@register');
+Route::post('/members/recover', 'Api\\AuthController@recover');
 Route::group(['middleware' => ['cors_me']], function (){
     Route::group(['middleware' => 'jwtCheck'], function ($router){
         Route::post('logout', 'Api\\AuthController@logout');
@@ -40,7 +41,11 @@ Route::group(['middleware' => ['cors_me']], function (){
         Route::post('me', 'Api\\AuthController@me');
     });
 });
-
+Route::get('mailable', function (){
+    $member = \App\Models\Member::all()->first();
+    return new \App\Mail\MemberVerification($member, "dggg");
+//    return new \App\Mail\MemberVerificationMarkdown($member);
+});
 
 Route::fallback(function (){
     return response()->json([

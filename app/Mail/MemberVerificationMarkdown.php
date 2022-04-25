@@ -4,14 +4,16 @@ namespace App\Mail;
 
 use App\Models\Member;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class MemberVerification extends Mailable
+class MemberVerificationMarkdown extends Mailable
 {
     use Queueable, SerializesModels;
 
+    /**
+     * @var Member
+     */
     private $member;
     private $verification_code;
 
@@ -37,13 +39,7 @@ class MemberVerification extends Mailable
         $subject = "Please verify your email address.";
         return $this
             ->subject($subject)
-//            ->view('api.emails.verification');
-//            ->view('api.emails.verification1');
-//            ->view('api.emails.verification2');
-//            ->view('api.emails.verification3');
-//            ->view('api.emails.verification4');
-//            ->view('api.emails.verification5');
-            ->view('api.emails.verification1')
+            ->markdown('api.emails.verification-markdown')
             ->with(['member' => $this->member, 'verification_code' => $this->verification_code]);
     }
 }

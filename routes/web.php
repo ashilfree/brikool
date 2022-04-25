@@ -1376,3 +1376,8 @@ Route::get('/register', function() {
 Route::get('/password/reset', function() {
     return redirect('/login');
 });
+
+Route::get('member/verify/{verification_code}', 'Api\\AuthController@verifyMember');
+Route::get('password/reset/{token}', 'Auth\ResetPasswordController@showResetForm')->name('password.request');
+Route::post('password/reset', 'Auth\ResetPasswordController@postReset')->name('password.reset');
+

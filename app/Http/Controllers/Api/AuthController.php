@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\MemberCreated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MemberLoginStore;
 use App\Http\Requests\MemberRegisterStore;
 use App\Mail\MemberVerification;
+use App\Mail\MemberVerificationMarkdown;
 use App\Models\LoginLog;
 use App\Models\Member;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use JWTAuth;
 
 class AuthController extends Controller
@@ -22,7 +26,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'verifyMember']]);
     }
 
     /**
@@ -57,14 +61,47 @@ class AuthController extends Controller
         $validated = $request->validated();
         $validated['password'] = Hash::make($validated['password']);
         $member = Member::create($validated);
-//        dd($member->email);
-        Mail::to($member)->send(
-            new MemberVerification($member)
-        );
+        $verification_code = Str::random(30);
+        DB::table('member_verifications')->insert(['member_id'=>$member->id,'token'=>$verification_code]);
+
+        event(new MemberCreated($member, $verification_code));
 
         $token = JWTAuth::fromUser($member);
 
-        return $this->respondWithToken($token);
+        return $this->respondWithTokenAndMember($member, $token);
+    }
+
+    /**
+     * API Verify User
+     *
+     * @param $verification_code
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function verifyMember($verification_code)
+    {
+        $check = DB::table('member_verifications')->where('token',$verification_code)->first();
+
+        if(!is_null($check)){
+            $member = Member::find($check->member_id);
+
+            if($member->is_verified == 1){
+                return response()->json([
+                    'success'=> true,
+                    'message'=> 'Account already verified..'
+                ]);
+            }
+
+            $member->update(['is_verified' => 1]);
+            DB::table('member_verifications')->where('token',$verification_code)->delete();
+
+            return response()->json([
+                'success'=> true,
+                'message'=> 'You have successfully verified your email address.'
+            ]);
+        }
+
+        return response()->json(['success'=> false, 'error'=> "Verification code is invalid."]);
+
     }
 
     /**
@@ -118,6 +155,24 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth()->factory()->getTTL() * 60
+        ]);
+    }
+
+    /**
+     * Get the token array structure.
+     *
+     * @param $member
+     * @param string $token
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    protected function respondWithTokenAndMember($member, string $token)
+    {
+        return response()->json([
+            'access_token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth()->factory()->getTTL() * 60,
+            'member' => $member,
         ]);
     }
 }
