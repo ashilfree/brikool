@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Events\MemberCreated;
+use App\Events\PasswordRecovery;
 use App\Listeners\NotifyMemberCreated;
+use App\Listeners\SendRecoveryEmail;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -22,6 +24,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         MemberCreated::class => [
             NotifyMemberCreated::class
+        ],
+        PasswordRecovery::class => [
+            SendRecoveryEmail::class
         ]
     ];
 

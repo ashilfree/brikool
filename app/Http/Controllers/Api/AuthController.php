@@ -3,16 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\MemberCreated;
+use App\Events\PasswordRecovery;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MemberLoginStore;
+use App\Http\Requests\MemberRecoverStore;
 use App\Http\Requests\MemberRegisterStore;
 use App\Mail\MemberVerification;
 use App\Mail\MemberVerificationMarkdown;
 use App\Models\LoginLog;
 use App\Models\Member;
+use http\Message;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use JWTAuth;
 
@@ -26,7 +30,7 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login', 'register', 'verifyMember']]);
+        $this->middleware('auth:api', ['except' => ['login', 'register', 'verifyMember', 'recover']]);
     }
 
     /**
@@ -37,7 +41,7 @@ class AuthController extends Controller
      */
     public function login(MemberLoginStore $request)
     {
-        $credentials = request(['email', 'password']);
+        $credentials = $request->validated();
 
         if (! $token = auth('api')->attempt($credentials,true)) {
             return response()->json(['error' => 'Unauthorized'], 401);
@@ -77,7 +81,7 @@ class AuthController extends Controller
      * @param $verification_code
      * @return \Illuminate\Http\JsonResponse
      */
-    public function verifyMember($verification_code)
+    public function verifyMember($verification_code): \Illuminate\Http\JsonResponse
     {
         $check = DB::table('member_verifications')->where('token',$verification_code)->first();
 
@@ -102,6 +106,35 @@ class AuthController extends Controller
 
         return response()->json(['success'=> false, 'error'=> "Verification code is invalid."]);
 
+    }
+
+    /**
+     * API Recover Password
+     *
+     * @param MemberRecoverStore $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function recover(MemberRecoverStore $request)
+    {
+        $credentials = $request->validated();
+        $member = Member::where('email', $credentials['email'])->first();
+        if (!$member) {
+            $error_message = "Your email address was not found.";
+            return response()->json(['success' => false, 'error' => ['email'=> $error_message]], 401);
+        }
+
+        DB::table(config('auth.passwords.members.table'))->where('email', $member->email)->delete();
+        $token = Str::random(64);
+        DB::table(config('auth.passwords.members.table'))->insert([
+            'email' => $member->email,
+            'token' => $token,
+            'created_at' => \Carbon\Carbon::now(),
+        ]);
+
+        event(new PasswordRecovery($member, $token));
+        return response()->json([
+            'success' => true, 'data'=> ['message'=> 'A reset email has been sent! Please check your email.']
+        ]);
     }
 
     /**
