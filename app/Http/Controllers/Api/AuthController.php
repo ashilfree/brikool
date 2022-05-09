@@ -41,10 +41,11 @@ class AuthController extends Controller
      */
     public function login(MemberLoginStore $request)
     {
+//        dd(app()->getLocale());
         $credentials = $request->validated();
 
         if (! $token = auth('api')->attempt($credentials,true)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => __("auth.failed")], 401);
         }
         $member = auth('api')->user();
         $login_log = new LoginLog();

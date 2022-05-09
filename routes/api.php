@@ -31,10 +31,11 @@ Route::prefix('v2')->name('api.v2.')->group(function (){
     })->name('status');
 });
 
-Route::post('/members/login', 'Api\\AuthController@login');
-Route::post('/members/register', 'Api\\AuthController@register');
-Route::post('/members/recover', 'Api\\AuthController@recover');
-Route::group(['middleware' => ['cors_me']], function (){
+
+Route::group(['middleware' => ['cors_me', 'lang']], function (){
+    Route::post('/members/login', 'Api\\AuthController@login');
+    Route::post('/members/register', 'Api\\AuthController@register');
+    Route::post('/members/recover', 'Api\\AuthController@recover');
     Route::group(['middleware' => 'jwtCheck'], function ($router){
         Route::post('logout', 'Api\\AuthController@logout');
         Route::post('refresh', 'Api\\AuthController@refresh');
